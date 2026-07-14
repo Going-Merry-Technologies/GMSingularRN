@@ -1,6 +1,8 @@
-import Singular, { SingularConfig } from 'singular-react-native';
+import { Singular, SingularConfig } from 'singular-react-native';
 import { Platform } from 'react-native';
 import * as Application from 'expo-application';
+import * as Crypto from 'expo-crypto';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createAppUser } from './api';
 import type {
   GMSingularConfig,
@@ -11,6 +13,7 @@ import type {
 
 const DEFAULT_BACKEND_URL = 'https://events.goingmerry.xyz';
 const ATT_TIMEOUT_SECONDS = 300; // 5 minutes
+const DEVICE_ID_KEY = '@gm_singular_device_id';
 
 /**
  * GMSingularService - Wrapper around Singular SDK for React Native.
@@ -77,8 +80,8 @@ class GMSingularService {
       adaptyId,
       appVersion: Application.nativeApplicationVersion ?? undefined,
       ...(Platform.OS === 'ios'
-        ? { iosVersion: Platform.Version.toString() }
-        : { androidVersion: Platform.Version.toString() }),
+        ? { iosVersion: String(Platform.Version) }
+        : { androidVersion: String(Platform.Version) }),
     };
 
     this.appUser = await createAppUser(request, backendUrl);
@@ -93,14 +96,22 @@ class GMSingularService {
   }
 
   /**
-   * Get the Singular device ID.
+   * Get or create a persistent device ID.
+   * Uses AsyncStorage to persist across app reinstalls.
    */
   async getDeviceId(): Promise<string> {
-    return new Promise((resolve) => {
-      Singular.getSingularDeviceId((deviceId) => {
-        resolve(deviceId);
-      });
-    });
+    try {
+      const stored = await AsyncStorage.getItem(DEVICE_ID_KEY);
+      if (stored) {
+        return stored;
+      }
+      const newId = Crypto.randomUUID();
+      await AsyncStorage.setItem(DEVICE_ID_KEY, newId);
+      return newId;
+    } catch {
+      // Fallback to a random UUID if storage fails
+      return Crypto.randomUUID();
+    }
   }
 
   /**
@@ -137,7 +148,11 @@ class GMSingularService {
     amount: number,
     args?: Record<string, unknown>,
   ): void {
-    Singular.customRevenue(eventName, currency, amount, args);
+    if (args) {
+      Singular.customRevenueWithArgs(eventName, currency, amount, args);
+    } else {
+      Singular.customRevenue(eventName, currency, amount);
+    }
   }
 
   /**
