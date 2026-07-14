@@ -80,8 +80,8 @@ class GMSingularService {
       adaptyId,
       appVersion: Application.nativeApplicationVersion ?? undefined,
       ...(Platform.OS === 'ios'
-        ? { iosVersion: String(Platform.Version) }
-        : { androidVersion: String(Platform.Version) }),
+        ? { iosVersion: `${Platform.Version}` }
+        : { androidVersion: `${Platform.Version}` }),
     };
 
     this.appUser = await createAppUser(request, backendUrl);
@@ -131,7 +131,7 @@ class GMSingularService {
   /**
    * Track a custom event.
    */
-  trackEvent(eventName: string, args?: Record<string, unknown>): void {
+  trackEvent(eventName: string, args?: Record<string, string | number | boolean | null>): void {
     if (args) {
       Singular.eventWithArgs(eventName, args);
     } else {
@@ -146,7 +146,7 @@ class GMSingularService {
     eventName: string,
     currency: string,
     amount: number,
-    args?: Record<string, unknown>,
+    args?: Record<string, string | number | boolean | null>,
   ): void {
     if (args) {
       Singular.customRevenueWithArgs(eventName, currency, amount, args);
