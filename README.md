@@ -59,7 +59,7 @@ console.log('ATT Status:', trackingStatus); // 'authorized' | 'denied' | 'not-de
 const initParams: InitializeParams = {
   applicationId: 'YOUR_GM_APP_ID',
   customUserId: userId,
-  adaptyId: userId, // Should match customUserId
+  adaptyId: adaptyProfileId, // Adapty profile ID
   appStoreCountry: 'US',
 };
 

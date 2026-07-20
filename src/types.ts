@@ -53,7 +53,7 @@ export interface SingularSessionConfig {
 export interface InitializeParams {
   /** Going Merry application ID (required) */
   applicationId: string;
-  /** Custom user ID (should match adaptyId for consistency) */
+  /** Custom user ID */
   customUserId?: string;
   /** Adapty profile ID */
   adaptyId?: string;
